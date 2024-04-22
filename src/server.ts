@@ -1,4 +1,4 @@
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import multer from "multer";
 import https from "node:https";
 import WebSocket from "ws";
@@ -25,16 +25,11 @@ app.use(
   })
 );
 app.use(express.static("live"));
-// app.use(express.static("public"));
-// for parsing application/json
 app.use(bodyParser.json());
 
-// for parsing application/xwww-
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.put("/upload/:guestID/:filename", (req, res) => {
-  // console.log(req.params.filename);
-  // console.log(req.body);
   const { filename, guestID } = req.params;
   const writeStream = fs.createWriteStream(`live/${guestID}/${filename}`);
 
@@ -45,7 +40,6 @@ app.put("/upload/:guestID/:filename", (req, res) => {
 
   req.on("error", (err) => {
     writeStream.end();
-    console.log(`saved ${filename}`);
   });
   req.on("close", () => {
     writeStream.end();
@@ -53,7 +47,6 @@ app.put("/upload/:guestID/:filename", (req, res) => {
   // Handle end of request
   req.on("end", () => {
     writeStream.end();
-    console.log(`saved ${filename}`);
     res.send("Data received successfully");
   });
 });
@@ -103,7 +96,14 @@ app.post("/live", upload.single("chunk"), function (req, res, next) {
   res.sendStatus(200);
 });
 
+const ErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  if (err) {
+    res.status(500).send(err);
+  } else next();
+};
+
 app.get("/", (req, res) => res.send("Hellow world"));
+app.use(ErrorHandler);
 app.listen(3000, "0.0.0.0", () => console.log("listening on port 3000"));
 const options = {
   key: fs.readFileSync("certs/key.pem"),

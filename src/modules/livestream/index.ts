@@ -69,36 +69,19 @@ export const CreateLiveStream = (guestID: string) => {
 
 export const PushToLive = (guestID: string, file: Express.Multer.File) => {
   const { stream, timeoutID } = ActiveLiveStream.get(guestID) || {};
-  if (!stream) {
-    const liveStream = CreateLiveStream(guestID);
-    file.stream.on("data", (chunk) => {
-      liveStream.write(chunk);
-    });
-    ActiveLiveStream.set(guestID, {
-      stream: liveStream,
-      timeoutID: setTimeout(() => {
-        liveStream.end();
-        ActiveLiveStream.delete(guestID);
-      }, 1 * 60 * 1000),
-    });
-  } else {
-    console.log("created");
-    clearTimeout(timeoutID);
-    ActiveLiveStream.set(guestID, {
-      stream,
-      timeoutID: setTimeout(() => {
-        stream.end();
-        ActiveLiveStream.delete(guestID);
-      }, 1 * 60 * 1000),
-    });
-    file.stream.on("data", (chunk) => {
-      stream.write(chunk);
-    });
-  }
+  if (!stream) throw new Error("Stream is terminated!");
 
-  file.stream.on("end", () => {
-    console.log("done");
-    file.stream.destroy();
+  console.log("created");
+  clearTimeout(timeoutID);
+  ActiveLiveStream.set(guestID, {
+    stream,
+    timeoutID: setTimeout(() => {
+      stream.end();
+      ActiveLiveStream.delete(guestID);
+    }, 1 * 60 * 1000),
+  });
+  file.stream.on("data", (chunk) => {
+    stream.write(chunk);
   });
 };
 
