@@ -7,7 +7,7 @@ import CustomStorage from "./modules/storage-engine";
 import cors from "cors";
 import bodyParser from "body-parser";
 const app = express();
-import './utils/auto-clean'
+import "./utils/auto-clean";
 // Set up Multer options
 const upload = multer({ storage: CustomStorage });
 
@@ -21,6 +21,7 @@ app.use(
       "https://192.168.100.7:3001",
       "https://castr.com",
       "https://livestream-black.vercel.app",
+      "https://54.253.18.118:3001",
     ],
   })
 );
