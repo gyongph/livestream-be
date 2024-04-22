@@ -7,7 +7,7 @@ import CustomStorage from "./modules/storage-engine";
 import cors from "cors";
 import bodyParser from "body-parser";
 const app = express();
-
+import './utils/auto-clean'
 // Set up Multer options
 const upload = multer({ storage: CustomStorage });
 
@@ -31,7 +31,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.put("/upload/:guestID/:filename", (req, res) => {
   const { filename, guestID } = req.params;
-  const writeStream = fs.createWriteStream(`live/${guestID}/${filename}`);
+  const writeStream = fs.createWriteStream(
+    __dirname + `/live/${guestID}/${filename}`
+  );
 
   // Handle incoming chunks of data
   req.on("data", (chunk) => {

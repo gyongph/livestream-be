@@ -24,7 +24,7 @@ export const CreateLiveStream = (guestID: string) => {
   let headTag: string | null = null;
   let writableStream: NodeJS.WritableStream;
   let segmentCount = 0;
-  fs.mkdirSync(path.resolve(__dirname, `../../../live/${guestID}`), {
+  fs.mkdirSync(`live/${guestID}`, {
     recursive: true,
   });
   const ffmpegProcess = spawn("ffmpeg", CreateLiveHLSConfig(guestID));
