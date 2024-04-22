@@ -4,8 +4,8 @@ import https from "node:https";
 import WebSocket from "ws";
 import fs from "node:fs";
 import CustomStorage from "./modules/storage-engine";
-import cors from 'cors'
-import bodyParser from 'body-parser'
+import cors from "cors";
+import bodyParser from "body-parser";
 const app = express();
 
 // Set up Multer options
@@ -47,7 +47,9 @@ app.put("/upload/:guestID/:filename", (req, res) => {
     writeStream.end();
     console.log(`saved ${filename}`);
   });
-
+  req.on("close", () => {
+    writeStream.end();
+  });
   // Handle end of request
   req.on("end", () => {
     writeStream.end();

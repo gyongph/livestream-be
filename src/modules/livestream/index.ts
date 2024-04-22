@@ -3,7 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { Writable } from "node:stream";
 import CreateLiveHLSConfig from "./utils/create-hls-config";
-const ActiveLiveStream = new Map<string, Writable>();
+const ActiveLiveStream = new Map<
+  string,
+  { stream: Writable; timeoutID: ReturnType<typeof setTimeout> }
+>();
 // Check if a chunk of data is UTF-8 encoded
 function isUTF8(data: any) {
   // Convert the chunk to a Buffer
@@ -25,8 +28,6 @@ export const CreateLiveStream = (guestID: string) => {
     recursive: true,
   });
   const ffmpegProcess = spawn("ffmpeg", CreateLiveHLSConfig(guestID));
-  ActiveLiveStream.set(guestID, ffmpegProcess.stdin);
-
   ffmpegProcess.stderr.on("data", (error) => {
     console.log(`${guestID}`, error.toString("utf-8"));
   });
@@ -67,17 +68,31 @@ export const CreateLiveStream = (guestID: string) => {
 };
 
 export const PushToLive = (guestID: string, file: Express.Multer.File) => {
-  const exist = ActiveLiveStream.get(guestID);
-  if (!exist) {
-    console.log("new STREAM");
+  const { stream, timeoutID } = ActiveLiveStream.get(guestID) || {};
+  if (!stream) {
     const liveStream = CreateLiveStream(guestID);
     file.stream.on("data", (chunk) => {
       liveStream.write(chunk);
     });
+    ActiveLiveStream.set(guestID, {
+      stream: liveStream,
+      timeoutID: setTimeout(() => {
+        liveStream.end();
+        ActiveLiveStream.delete(guestID);
+      }, 1 * 60 * 1000),
+    });
   } else {
     console.log("created");
+    clearTimeout(timeoutID);
+    ActiveLiveStream.set(guestID, {
+      stream,
+      timeoutID: setTimeout(() => {
+        stream.end();
+        ActiveLiveStream.delete(guestID);
+      }, 1 * 60 * 1000),
+    });
     file.stream.on("data", (chunk) => {
-      exist.write(chunk);
+      stream.write(chunk);
     });
   }
 
