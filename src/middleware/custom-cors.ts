@@ -11,13 +11,12 @@ function customCorsMiddleware(allowedOrigins: string[]) {
       const parts: string[] = originHeader.split(".");
       const subdomain: string | null = parts.length > 2 ? parts[0] : null;
       const domain: string = parts.slice(-2).join(".");
-
       // Check if the domain is one of the allowed origins
       if (allowedOrigins.includes(domain)) {
         // Set CORS headers to allow the specific subdomain
         res.setHeader(
           "Access-Control-Allow-Origin",
-          `https://${subdomain}.${domain}`
+          `${subdomain}.${domain}`
         );
       }
     }
