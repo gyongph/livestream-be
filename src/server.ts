@@ -21,27 +21,31 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.put("/upload/:guestID/:filename", (req, res) => {
-  const { filename, guestID } = req.params;
-  const writeStream = fs.createWriteStream(
-    __dirname + `/live/${guestID}/${filename}`
-  );
+  try {
+    const { filename, guestID } = req.params;
+    const writeStream = fs.createWriteStream(
+      __dirname + `/live/${guestID}/${filename}`
+    );
 
-  // Handle incoming chunks of data
-  req.on("data", (chunk) => {
-    writeStream.write(chunk);
-  });
+    // Handle incoming chunks of data
+    req.on("data", (chunk) => {
+      writeStream.write(chunk);
+    });
 
-  req.on("error", (err) => {
-    writeStream.end();
-  });
-  req.on("close", () => {
-    writeStream.end();
-  });
-  // Handle end of request
-  req.on("end", () => {
-    writeStream.end();
-    res.send("Data received successfully");
-  });
+    req.on("error", (err) => {
+      writeStream.end();
+    });
+    req.on("close", () => {
+      writeStream.end();
+    });
+    // Handle end of request
+    req.on("end", () => {
+      writeStream.end();
+      res.send("Data received successfully");
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 app.post("/live", upload.single("chunk"), function (req, res, next) {
   // req.file is the `avatar` file
