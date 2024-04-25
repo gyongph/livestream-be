@@ -10,14 +10,11 @@ import allowedOrigin from "@/config/allowed-origin.json";
 const app = express();
 
 import "./utils/auto-clean";
+import customCorsMiddleware from "./middleware/custom-cors";
 // Set up Multer options
 const upload = multer({ storage: CustomStorage });
 
-app.use(
-  cors({
-    origin: allowedOrigin,
-  })
-);
+app.use(customCorsMiddleware(allowedOrigin));
 app.use(express.static("live"));
 app.use(bodyParser.json());
 
