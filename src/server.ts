@@ -6,23 +6,16 @@ import fs from "node:fs";
 import CustomStorage from "./modules/storage-engine";
 import cors from "cors";
 import bodyParser from "body-parser";
+import allowedOrigin from "@/config/allowed-origin.json";
 const app = express();
+
 import "./utils/auto-clean";
 // Set up Multer options
 const upload = multer({ storage: CustomStorage });
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3001",
-      "https://livepush.io",
-      "https://hlsjs.video-dev.org",
-      "https://video-player-hls.vercel.app",
-      "https://192.168.100.7:3001",
-      "https://castr.com",
-      "https://livestream-black.vercel.app",
-      "https://54.253.18.118:3001",
-    ],
+    origin: allowedOrigin,
   })
 );
 app.use(express.static("live"));
