@@ -4,7 +4,7 @@ function customCorsMiddleware(allowedOrigins: string[]) {
   return function (req: Request, res: Response, next: NextFunction) {
     // Extract the source domain from the request headers
     const originHeader: string | undefined = req.headers.origin as string;
-    console.log(req.headers)
+    // console.log(req.headers)
     // Check if there's an origin header
     if (originHeader) {
       // Extract the source domain from the origin header

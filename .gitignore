@@ -3,3 +3,5 @@ live
 certs
 infra
 dist
+
+*.env

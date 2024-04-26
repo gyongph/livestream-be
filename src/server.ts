@@ -1,29 +1,43 @@
+import dotenv from "dotenv";
+dotenv.config();
+import { Writable, PassThrough } from "node:stream";
 import express, { ErrorRequestHandler } from "express";
 import multer from "multer";
-import https from "node:https";
+import http from "node:http";
 import WebSocket from "ws";
-import fs from "node:fs";
-import CustomStorage from "./modules/storage-engine";
+import cors from "cors";
+import CustomStorage from "./modules/livestream/storage-engine";
 import bodyParser from "body-parser";
 import allowedOrigin from "./config/allowed-origin.json";
 const app = express();
 
 import "./utils/auto-clean";
 import customCorsMiddleware from "./middleware/custom-cors";
+import { createPreSignedURL, transferToS3Bucket } from "./modules/s3-storage";
 // Set up Multer options
 const upload = multer({ storage: CustomStorage });
-
+app.use(
+  cors({
+    origin: ["https://livepush.io"],
+  })
+);
 app.use(customCorsMiddleware(allowedOrigin));
-app.use(express.static("live"));
+// app.use(express.static("live"));
 app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.get(`/live/:guestID/:filename`, async (req, res, next) => {
+  const { filename, guestID } = req.params;
+  const presignedUrl = await createPreSignedURL(
+    `live/${guestID}/${filename}`,
+    filename.match(".m3u8") ? 60 * 60 * 24 : undefined
+  );
+  res.redirect(presignedUrl);
+});
 app.put("/upload/:guestID/:filename", (req, res) => {
   const { filename, guestID } = req.params;
-  const writeStream = fs.createWriteStream(
-    __dirname + `/live/${guestID}/${filename}`
-  );
+  const writeStream = new PassThrough();
+  transferToS3Bucket(`live/${guestID}/${filename}`, writeStream);
 
   // Handle incoming chunks of data
   req.on("data", (chunk) => {
@@ -96,15 +110,11 @@ const ErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
 app.get("/", (req, res) => res.send("Hellow world"));
 app.use(ErrorHandler);
-app.listen(3000, "0.0.0.0", () => console.log("listening on port 3000"));
-const options = {
-  key: fs.readFileSync("certs/key.pem"),
-  cert: fs.readFileSync("certs/cert.pem"),
-};
-const server = https.createServer(options, app).listen(4343);
-
+const server = http.createServer(app).listen(5001, "0.0.0.0", () => {
+  console.log(`listening on port 5001`);
+});
 const wss = new WebSocket.Server({ server });
 wss.on("connection", (socket, request) => {
   // const liveStream = CreateLiveStream()
-  socket.on("message", (data) => console.log(data.toString("utf-8")));
+  socket.on("message", (data) => {});
 });

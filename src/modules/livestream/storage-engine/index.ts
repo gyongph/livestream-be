@@ -1,5 +1,5 @@
 import { StorageEngine } from "multer";
-import { PushToLive } from "../livestream";
+import { PushToLive } from "..";
 
 const CustomStorage: StorageEngine = {
   _handleFile(req, file, cb) {
