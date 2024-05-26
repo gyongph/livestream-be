@@ -22,7 +22,7 @@ app.use(
   })
 );
 app.use(customCorsMiddleware(allowedOrigin));
-// app.use(express.static("live"));
+app.use(express.static("live"));
 app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
